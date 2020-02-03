@@ -35,17 +35,12 @@ import com.bliss.support.colorpicker.ColorPickerPreference;
 public class ThemeRoom extends SettingsPreferenceFragment implements
         OnPreferenceChangeListener {
 
-    private static final String ACCENT_COLOR = "accent_color";
-    private static final String ACCENT_COLOR_PROP = "persist.sys.theme.accentcolor";
     private static final String GRADIENT_COLOR = "gradient_color";
     private static final String GRADIENT_COLOR_PROP = "persist.sys.theme.gradientcolor";
 
     private IOverlayManager mOverlayService;
-    private ColorPickerPreference mThemeColor;
     private ColorPickerPreference mGradientColor;
 
-
-    static final int ACCENT = 0xFF1A73E8;
     static final int GRADIENT = 0xFF1AD8E8;
 
     @Override
@@ -61,17 +56,7 @@ public class ThemeRoom extends SettingsPreferenceFragment implements
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object objValue) {
-        if (preference == mThemeColor) {
-            int color = (Integer) objValue;
-            String hexColor = String.format("%08X", (0xFFFFFFFF & color));
-            SystemProperties.set(ACCENT_COLOR_PROP, hexColor);
-            try {
-                 mOverlayService.reloadAndroidAssets(UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.settings", UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.systemui", UserHandle.USER_CURRENT);
-             } catch (RemoteException ignored) {
-             }
-        } else if (preference == mGradientColor) {
+        if (preference == mGradientColor) {
             int color = (Integer) objValue;
             String hexColor = String.format("%08X", (0xFFFFFFFF & color));
             SystemProperties.set(GRADIENT_COLOR_PROP, hexColor);
@@ -83,19 +68,6 @@ public class ThemeRoom extends SettingsPreferenceFragment implements
              }
         }
         return true;
-    }
-
-    private void setupAccentPref() {
-        mThemeColor = (ColorPickerPreference) findPreference(ACCENT_COLOR);
-        String colorVal = SystemProperties.get(ACCENT_COLOR_PROP, "-1");
-        try {
-            int color = "-1".equals(colorVal)
-                    ? ACCENT
-                    : Color.parseColor("#" + colorVal);
-            mThemeColor.setNewPreviewColor(color);
-        } catch (NumberFormatException ex) {
-        }
-        mThemeColor.setOnPreferenceChangeListener(this);
     }
 
     private void setupGradientPref() {
