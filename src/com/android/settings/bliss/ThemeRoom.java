@@ -36,12 +36,11 @@ public class ThemeRoom extends SettingsPreferenceFragment implements
         OnPreferenceChangeListener {
 
     private static final String ACCENT_COLOR = "accent_color";
-    private static final String ACCENT_COLOR_PROP = "persist.sys.theme.accentcolor";
+    private static final String ACCENT_COLOR_PROP = "accent_color_prop";
     private static final String GRADIENT_COLOR = "gradient_color";
-    private static final String GRADIENT_COLOR_PROP = "persist.sys.theme.gradientcolor";
+    private static final String GRADIENT_COLOR_PROP = "gradient_color_prop";
 
-    private IOverlayManager mOverlayService;
-    private ColorPickerPreference mThemeColor;
+    private ColorPickerPreference mAccentColor;
     private ColorPickerPreference mGradientColor;
 
 
@@ -52,63 +51,64 @@ public class ThemeRoom extends SettingsPreferenceFragment implements
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
+        ContentResolver resolver = getActivity().getContentResolver();
+
         addPreferencesFromResource(R.xml.theme_room);
-        mOverlayService = IOverlayManager.Stub
-                .asInterface(ServiceManager.getService(Context.OVERLAY_SERVICE));
-        setupAccentPref();
-        setupGradientPref();
+        mAccentColor = (ColorPickerPreference) findPreference(ACCENT_COLOR);
+        mAccentColor.setOnPreferenceChangeListener(this);
+        int accentColor = Settings.System.getIntForUser(resolver,
+                Settings.System.ACCENT_COLOR_PROP, ACCENT, UserHandle.USER_CURRENT);
+        String accColor = String.format("#%08x", (0xFFFFFFFF & accentColor));
+        if (accColor.equals("#ff1a73e8")) {
+            mAccentColor.setSummary(R.string.default_string);
+        } else {
+            mAccentColor.setSummary(accColor);
+        }
+        mAccentColor.setNewPreviewColor(accentColor);
+
+        mGradientColor = (ColorPickerPreference) findPreference(GRADIENT_COLOR);
+        mGradientColor.setOnPreferenceChangeListener(this);
+        int gradientColor = Settings.System.getIntForUser(resolver,
+                Settings.System.GRADIENT_COLOR_PROP, GRADIENT, UserHandle.USER_CURRENT);
+        String gradColor = String.format("#%08x", (0xFFFFFFFF & gradientColor));
+        if (gradColor.equals("#ff1ad8e8")) {
+            mGradientColor.setSummary(R.string.default_string);
+        } else {
+            mGradientColor.setSummary(gradColor);
+        }
+        mGradientColor.setNewPreviewColor(gradientColor);
     }
 
     @Override
-    public boolean onPreferenceChange(Preference preference, Object objValue) {
-        if (preference == mThemeColor) {
-            int color = (Integer) objValue;
-            String hexColor = String.format("%08X", (0xFFFFFFFF & color));
-            SystemProperties.set(ACCENT_COLOR_PROP, hexColor);
-            try {
-                 mOverlayService.reloadAndroidAssets(UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.settings", UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.systemui", UserHandle.USER_CURRENT);
-             } catch (RemoteException ignored) {
-             }
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+        ContentResolver resolver = getActivity().getContentResolver();
+        if (preference == mAccentColor) {
+            String hex = ColorPickerPreference.convertToARGB(
+                    Integer.valueOf(String.valueOf(newValue)));
+            if (hex.equals("#ff1a73e8")) {
+                mAccentColor.setSummary(R.string.default_string);
+            } else {
+                mAccentColor.setSummary(hex);
+            }
+            int intHex = ColorPickerPreference.convertToColorInt(hex);
+            Settings.System.putIntForUser(resolver,
+                    Settings.System.ACCENT_COLOR_PROP, intHex, UserHandle.USER_CURRENT);
+            return true;
         } else if (preference == mGradientColor) {
-            int color = (Integer) objValue;
-            String hexColor = String.format("%08X", (0xFFFFFFFF & color));
-            SystemProperties.set(GRADIENT_COLOR_PROP, hexColor);
-            try {
-                 mOverlayService.reloadAndroidAssets(UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.settings", UserHandle.USER_CURRENT);
-                 mOverlayService.reloadAssets("com.android.systemui", UserHandle.USER_CURRENT);
-             } catch (RemoteException ignored) {
-             }
+            String hex = ColorPickerPreference.convertToARGB(
+                    Integer.valueOf(String.valueOf(newValue)));
+            if (hex.equals("#ff1ad8e8")) {
+                mGradientColor.setSummary(R.string.default_string);
+            } else {
+                mGradientColor.setSummary(hex);
+            }
+            int intHex = ColorPickerPreference.convertToColorInt(hex);
+            Settings.System.putIntForUser(resolver,
+                    Settings.System.GRADIENT_COLOR_PROP, intHex, UserHandle.USER_CURRENT);
+            return true;
         }
-        return true;
-    }
-
-    private void setupAccentPref() {
-        mThemeColor = (ColorPickerPreference) findPreference(ACCENT_COLOR);
-        String colorVal = SystemProperties.get(ACCENT_COLOR_PROP, "-1");
-        try {
-            int color = "-1".equals(colorVal)
-                    ? ACCENT
-                    : Color.parseColor("#" + colorVal);
-            mThemeColor.setNewPreviewColor(color);
-        } catch (NumberFormatException ex) {
-        }
-        mThemeColor.setOnPreferenceChangeListener(this);
-    }
-
-    private void setupGradientPref() {
-        mGradientColor = (ColorPickerPreference) findPreference(GRADIENT_COLOR);
-        String colorVal = SystemProperties.get(GRADIENT_COLOR_PROP, "-1");
-        try {
-            int color = "-1".equals(colorVal)
-                    ? GRADIENT
-                    : Color.parseColor("#" + colorVal);
-            mGradientColor.setNewPreviewColor(color);
-        } catch (NumberFormatException ex) {
-        }
-        mGradientColor.setOnPreferenceChangeListener(this);
+        return false;
     }
 
     @Override
