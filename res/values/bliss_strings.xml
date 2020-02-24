@@ -145,9 +145,7 @@
     <string name="accent_color">Accent picker</string>
     <string name="accent_summary">System wide accent maker</string>
     <string name="gradient_color">Gradient picker</string>
-    <string name="gradient_summary">Gradient effect maker</string>
-
-    <!-- Custom Vibration fragment -->
+    <string name="gradient_summary">Gradient effect maker</string>    <!-- Custom Vibration fragment -->
     <string name="vibration_preferences">Vibration &amp; haptics</string>
     <string name="summary_vibration_preferences">Change intensities, pattern and more</string>
     <string name="keywords_vibration_preferences">vibration pattern, vibration intensity, incall, haptics, tap</string>

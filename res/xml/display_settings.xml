@@ -193,12 +193,6 @@
         android:title="@string/hwui_force_dark_title"
         android:summary="@string/hwui_force_dark_summary" />
 
-     <Preference
-         android:key="theme_room"
-         android:title="@string/themeroom_title"
-         android:summary="@string/themeroom_summary"
-         android:fragment="com.android.settings.bliss.ThemeRoom" />
-
-    </PreferenceCategory>
+</PreferenceCategory>
 
 </PreferenceScreen>
